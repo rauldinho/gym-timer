@@ -485,6 +485,10 @@ p {
   background: linear-gradient(180deg, var(--rest-strong) 0%, var(--rest) 100%);
 }
 
+.phase-countdown .timer-fill {
+  background: linear-gradient(180deg, var(--surface2) 0%, var(--border) 100%);
+}
+
 /* Curtain texture overlays — cosmetic only, independent of theme colors.
    `mix-blend-mode` lets the white highlights fuse into the underlying
    work/rest color instead of sitting on top as a flat, dull haze. */
@@ -597,10 +601,24 @@ p {
   letter-spacing: 2px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.38);
   padding: 6px 16px;
   border-radius: 999px;
+}
+
+/* A frosted scrim behind the readout so the countdown stays legible no
+   matter how bright or light the curtain color underneath gets. */
+.timer-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 28px 22px;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
 }
 
 .exercise-name {
@@ -617,11 +635,14 @@ p {
   font-variant-numeric: tabular-nums;
   line-height: 1;
   color: #fff;
-  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.45),
+    0 8px 28px rgba(0, 0, 0, 0.4);
 }
 
 .progress-label {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 1rem;
   font-weight: 600;
 }

@@ -37,7 +37,10 @@ export function TimerScreen({ plan, soundEnabled, curtainEffect, onFinish, onSto
 
   if (!step) return null;
 
-  const isWork = step.kind === 'work';
+  const phaseClass =
+    step.kind === 'work' ? 'phase-work' : step.kind === 'rest' ? 'phase-rest' : 'phase-countdown';
+  const phaseLabel = step.kind === 'work' ? 'Work' : step.kind === 'rest' ? 'Rest' : 'Get Ready';
+  const nameText = step.kind === 'rest' ? '' : step.label;
   const showRound = step.totalRounds > 1;
   const showExercise = step.totalExercises > 1;
 
@@ -51,7 +54,7 @@ export function TimerScreen({ plan, soundEnabled, curtainEffect, onFinish, onSto
   };
 
   return (
-    <div className={`screen timer-screen ${isWork ? 'phase-work' : 'phase-rest'}`}>
+    <div className={`screen timer-screen ${phaseClass}`}>
       <div className="timer-fill-track">
         <div ref={fillRef} className="timer-fill">
           <div className={`fill-pattern fill-pattern-${curtainEffect}`} />
@@ -59,12 +62,14 @@ export function TimerScreen({ plan, soundEnabled, curtainEffect, onFinish, onSto
       </div>
 
       <div className="timer-content">
-        <span className="phase-pill">{isWork ? 'Work' : 'Rest'}</span>
-        <h2 className="exercise-name">{isWork ? step.label : 'Get ready'}</h2>
-        <div className="countdown" aria-live="polite">
-          {remaining}
+        <span className="phase-pill">{phaseLabel}</span>
+        <div className="timer-readout">
+          <h2 className="exercise-name">{nameText}</h2>
+          <div className="countdown" aria-live="polite">
+            {remaining}
+          </div>
+          {progressParts.length > 0 && <p className="progress-label">{progressParts.join(' · ')}</p>}
         </div>
-        {progressParts.length > 0 && <p className="progress-label">{progressParts.join(' · ')}</p>}
       </div>
 
       <div className="timer-controls">

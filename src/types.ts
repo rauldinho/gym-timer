@@ -31,7 +31,7 @@ export const DEFAULT_CONFIG: TimerConfig = {
   curtainEffect: 'solid',
 };
 
-export type StepKind = 'work' | 'rest';
+export type StepKind = 'work' | 'rest' | 'countdown';
 
 export interface TimerStep {
   kind: StepKind;

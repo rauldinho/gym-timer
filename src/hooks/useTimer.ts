@@ -1,8 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { TimerStep } from '../types';
 import { playComplete, playTick, playTransition } from '../utils/sound';
 import { releaseWakeLock, requestWakeLock } from '../utils/wakeLock';
+
+const START_COUNTDOWN_SECONDS = 3;
+
+/** Prepends a synthetic 3-2-1 "get ready" step before the workout begins. */
+function withStartCountdown(plan: TimerStep[]): TimerStep[] {
+  const first = plan[0];
+  if (!first) return plan;
+
+  const countdownStep: TimerStep = {
+    kind: 'countdown',
+    label: first.label,
+    duration: START_COUNTDOWN_SECONDS,
+    round: first.round,
+    totalRounds: first.totalRounds,
+    exerciseIndex: first.exerciseIndex,
+    totalExercises: first.totalExercises,
+  };
+
+  return [countdownStep, ...plan];
+}
 
 interface Engine {
   stepIndex: number;
@@ -35,8 +55,10 @@ export interface UseTimerResult {
  * without triggering React re-renders on every frame.
  */
 export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResult {
+  const fullPlan = useMemo(() => withStartCountdown(plan), [plan]);
+
   const [stepIndex, setStepIndex] = useState(0);
-  const [remaining, setRemaining] = useState(plan[0]?.duration ?? 0);
+  const [remaining, setRemaining] = useState(fullPlan[0]?.duration ?? 0);
   const [paused, setPaused] = useState(false);
   const [finished, setFinished] = useState(false);
 
@@ -49,7 +71,7 @@ export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResu
     paused: false,
     lastBeepSecond: null,
     rafId: null,
-    plan,
+    plan: fullPlan,
   });
 
   useEffect(() => {
@@ -58,7 +80,7 @@ export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResu
 
   useEffect(() => {
     const engine = engineRef.current;
-    engine.plan = plan;
+    engine.plan = fullPlan;
     engine.stepIndex = 0;
     engine.pausedElapsed = 0;
     engine.stepStart = performance.now();
@@ -67,7 +89,7 @@ export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResu
     progressRef.current = 0;
 
     setStepIndex(0);
-    setRemaining(plan[0]?.duration ?? 0);
+    setRemaining(fullPlan[0]?.duration ?? 0);
     setPaused(false);
     setFinished(false);
 
@@ -121,10 +143,11 @@ export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResu
       if (engine.rafId !== null) cancelAnimationFrame(engine.rafId);
       releaseWakeLock();
     };
-    // `plan` is created fresh each time a workout starts, so this effect
-    // intentionally re-runs (and resets the engine) only when that happens.
+    // `fullPlan` is recomputed fresh each time a workout starts, so this
+    // effect intentionally re-runs (and resets the engine) only when that
+    // happens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [plan]);
+  }, [fullPlan]);
 
   const togglePause = useCallback(() => {
     const engine = engineRef.current;
@@ -170,7 +193,7 @@ export function useTimer(plan: TimerStep[], soundEnabled: boolean): UseTimerResu
   }, []);
 
   return {
-    step: plan[stepIndex],
+    step: fullPlan[stepIndex],
     stepIndex,
     remaining,
     paused,
